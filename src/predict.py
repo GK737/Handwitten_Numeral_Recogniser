@@ -45,11 +45,11 @@ def preprocess_image(image_path):
     final_img[offset_y:offset_y+new_h, offset_x:offset_x+new_w] = img
 
     # 7. Normalize and Expand Dimensions
-    
+
     img_array = final_img.astype("float32") / 255.0
     return np.expand_dims(img_array, axis=(0, -1))
 
-image_path = "E:\\Useless_Project\\Numeral Recogniser\\Handwitten_Numeral_Recogniser\\src\\my_digit_1.png"
+image_path = "E:\\Useless_Project\\Numeral Recogniser\\Handwitten_Numeral_Recogniser\\src\\my_digit_2.png"
 processed_image = preprocess_image(image_path)
 
 prediction = model.predict(processed_image)
