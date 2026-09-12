@@ -1,18 +1,15 @@
 import os
 import numpy as np
 import tensorflow as tf
-import matplotlib.pyplot as plt
-import seaborn as sns
 
-from tensorflow.keras import layers, models
-from sklearn.metrics import confusion_matrix, classification_report
+from tensorflow.keras import layers, models # pyright: ignore[reportMissingModuleSource]
 
 
 # ============================================================
 # 1. SETTINGS
 # ============================================================
 
-DATASET_PATH = "DevanagariHandwrittenCharacterDataset"
+DATASET_PATH = os.path.join("datasets", "Devanagiri_Dataset")
 
 TRAIN_PATH = os.path.join(DATASET_PATH, "Train")
 TEST_PATH = os.path.join(DATASET_PATH, "Test")
@@ -263,4 +260,5 @@ model.save("devanagari_numeral_cnn.keras")
 
 print("\nModel saved as:")
 print("devanagari_numeral_cnn.keras")
+
 
