@@ -43,8 +43,12 @@ def preprocess_image(image_path):
     offset_x = (28 - new_w) // 2
     offset_y = (28 - new_h) // 2
     final_img[offset_y:offset_y+new_h, offset_x:offset_x+new_w] = img
+<<<<<<< HEAD
 
     # 7. Normalize and Expand Dimensions
+=======
+    
+>>>>>>> 7895beb8b174817752615dba917bf5c80bb4d507
 
     img_array = final_img.astype("float32") / 255.0
     return np.expand_dims(img_array, axis=(0, -1))
