@@ -1,0 +1,16 @@
+Updated changes to predict.py to solve accuracy loss for gallery images:
+
+1. Image Inversion (ImageOps.invert):
+Converted gallery images (black-on-white) to MNIST format (white-on-black).
+
+2. Binarization/Thresholding (image.point):
+Converted grayscale/noisy photos to pure binary black-and-white to remove shadows and lighting gradients.
+
+3. Automatic Bounding Box Cropping (getbbox):
+Added logic to detect the exact area containing the digit and crop out empty margins. This prevents the digit from becoming too small or off-center after resizing.
+
+4. Proportional Scaling and Centering:
+Instead of a forced resize to 28x28, the digit is now scaled to fit within a 20x20 area (maintaining aspect ratio) and then centered onto a 28x28 black background. This precisely mimics the MNIST dataset structure.
+
+5. Simplified Dimensional Expansion:
+Used np.expand_dims(image, axis=(0, -1)) to prepare the image for the CNN input shape (batch, height, width, channels).

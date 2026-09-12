@@ -1,0 +1,53 @@
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1788799986.290777    7760 port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1788799998.518489    7760 port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+Downloading data from https://storage.googleapis.com/tensorflow/tf-keras-datasets/mnist.npz
+11490434/11490434 ━━━━━━━━━━━━━━━━━━━━ 17s 2us/step  
+Training: (60000, 28, 28, 1)
+Testing : (10000, 28, 28, 1)
+I0000 00:00:1788800022.619574    7760 cpu_feature_guard.cc:227] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: SSE3 SSE4.1 SSE4.2 AVX AVX2 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+Model: "sequential"
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┓
+┃ Layer (type)                    ┃ Output Shape            ┃       Param # ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━┩
+│ conv2d (Conv2D)                 │ (None, 26, 26, 32)      │           320 │
+├─────────────────────────────────┼─────────────────────────┼───────────────┤
+│ max_pooling2d (MaxPooling2D)    │ (None, 13, 13, 32)      │             0 │
+├─────────────────────────────────┼─────────────────────────┼───────────────┤
+│ conv2d_1 (Conv2D)               │ (None, 11, 11, 64)      │        18,496 │
+├─────────────────────────────────┼─────────────────────────┼───────────────┤
+│ max_pooling2d_1 (MaxPooling2D)  │ (None, 5, 5, 64)        │             0 │
+├─────────────────────────────────┼─────────────────────────┼───────────────┤
+│ flatten (Flatten)               │ (None, 1600)            │             0 │
+├─────────────────────────────────┼─────────────────────────┼───────────────┤
+│ dropout (Dropout)               │ (None, 1600)            │             0 │
+├─────────────────────────────────┼─────────────────────────┼───────────────┤
+│ dense (Dense)                   │ (None, 10)              │        16,010 │
+└─────────────────────────────────┴─────────────────────────┴───────────────┘
+ Total params: 34,826 (136.04 KB)
+ Trainable params: 34,826 (136.04 KB)
+ Non-trainable params: 0 (0.00 B)
+WARNING:tensorflow:TensorFlow GPU support is not available on native Windows for TensorFlow >= 2.11. Even if CUDA/cuDNN are installed, GPU will not be used. Please use WSL2 or the TensorFlow-DirectML plugin.
+Epoch 1/10
+422/422 ━━━━━━━━━━━━━━━━━━━━ 12s 25ms/step - accuracy: 0.8916 - loss: 0.3607 - val_accuracy: 0.9793 - val_loss: 0.0801
+Epoch 2/10
+422/422 ━━━━━━━━━━━━━━━━━━━━ 11s 25ms/step - accuracy: 0.9656 - loss: 0.1131 - val_accuracy: 0.9855 - val_loss: 0.0554
+Epoch 3/10
+422/422 ━━━━━━━━━━━━━━━━━━━━ 12s 27ms/step - accuracy: 0.9746 - loss: 0.0856 - val_accuracy: 0.9875 - val_loss: 0.0489
+Epoch 4/10
+422/422 ━━━━━━━━━━━━━━━━━━━━ 10s 25ms/step - accuracy: 0.9786 - loss: 0.0689 - val_accuracy: 0.9883 - val_loss: 0.0405
+Epoch 5/10
+422/422 ━━━━━━━━━━━━━━━━━━━━ 11s 27ms/step - accuracy: 0.9798 - loss: 0.0630 - val_accuracy: 0.9898 - val_loss: 0.0395
+Epoch 6/10
+422/422 ━━━━━━━━━━━━━━━━━━━━ 10s 24ms/step - accuracy: 0.9827 - loss: 0.0558 - val_accuracy: 0.9882 - val_loss: 0.0388
+Epoch 7/10
+422/422 ━━━━━━━━━━━━━━━━━━━━ 10s 24ms/step - accuracy: 0.9835 - loss: 0.0529 - val_accuracy: 0.9905 - val_loss: 0.0365
+Epoch 8/10
+422/422 ━━━━━━━━━━━━━━━━━━━━ 10s 24ms/step - accuracy: 0.9853 - loss: 0.0466 - val_accuracy: 0.9898 - val_loss: 0.0356
+Epoch 9/10
+422/422 ━━━━━━━━━━━━━━━━━━━━ 10s 24ms/step - accuracy: 0.9854 - loss: 0.0448 - val_accuracy: 0.9900 - val_loss: 0.0361
+Epoch 10/10
+422/422 ━━━━━━━━━━━━━━━━━━━━ 11s 26ms/step - accuracy: 0.9869 - loss: 0.0402 - val_accuracy: 0.9902 - val_loss: 0.0348
+Test accuracy: 0.9915000200271606
