@@ -44,9 +44,7 @@ def preprocess_image(image_path):
     offset_y = (28 - new_h) // 2
     final_img[offset_y:offset_y+new_h, offset_x:offset_x+new_w] = img
     
-    # DEBUG: Save the image to see what the model sees
-    cv2.imwrite("E:\\Useless_Project\\Numeral Recogniser\\Handwitten_Numeral_Recogniser\\src\\debug_processed.png", final_img)
-    
+
     img_array = final_img.astype("float32") / 255.0
     return np.expand_dims(img_array, axis=(0, -1))
 
