@@ -173,6 +173,7 @@ canvas#pad { width: 100%; height: 100%; touch-action: none; cursor: crosshair; b
 .btn:hover { background: var(--glass); border-color: var(--accent); }
 .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
 .btn.primary:hover { background: color-mix(in srgb, var(--accent) 85%, var(--ink)); }
+.btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
 button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 
@@ -275,16 +276,19 @@ h2 { font-size: .95rem; font-weight: 600; margin: 26px 0 12px; }
       </div>
 
       <div class="toolbar" id="tools-upload">
+        <button class="btn primary" id="recognise-upload" disabled><i class="ph ph-sparkle" aria-hidden="true"></i>Recognise</button>
         <button class="btn" id="browse"><i class="ph ph-folder-open" aria-hidden="true"></i>Choose image</button>
         <span class="hint">Dark ink on paper or light ink on a dark background both work.</span>
       </div>
       <div class="toolbar" id="tools-camera" hidden>
-        <button class="btn primary" id="cam-toggle"><i class="ph ph-video-camera" aria-hidden="true"></i><span>Start camera</span></button>
-        <span class="hint" id="cam-hint">Only the square is sent for prediction. Nothing is stored.</span>
+        <button class="btn primary" id="capture" disabled><i class="ph ph-aperture" aria-hidden="true"></i>Capture</button>
+        <button class="btn" id="cam-toggle"><i class="ph ph-video-camera" aria-hidden="true"></i><span>Start camera</span></button>
+        <span class="hint" id="cam-hint">Only the square is sent, when you press Capture. Nothing is stored.</span>
       </div>
       <div class="toolbar" id="tools-draw" hidden>
+        <button class="btn primary" id="recognise-draw" disabled><i class="ph ph-sparkle" aria-hidden="true"></i>Recognise</button>
         <button class="btn" id="clear"><i class="ph ph-eraser" aria-hidden="true"></i>Clear</button>
-        <span class="hint">Lift your pen and the prediction follows.</span>
+        <span class="hint">Finish drawing, then press Recognise.</span>
       </div>
     </section>
 
@@ -296,15 +300,18 @@ h2 { font-size: .95rem; font-weight: 600; margin: 26px 0 12px; }
 
 <script>
 const DEVANAGARI = "०१२३४५६७८९";
-const state = { script: "western", mode: "upload", lastImage: null, inFlight: false };
+const state = { script: "western", mode: "upload", uploadImage: null, drawn: false, inFlight: false };
 const $ = (id) => document.getElementById(id);
 const result = $("result");
 
 // ---------- Result rendering ----------
 function renderEmpty() {
+  const button = state.mode === "camera" ? "Capture" : "Recognise";
+  const [title, body] = isReady()
+    ? ["Ready when you are", `Press ${button} to see the prediction.`]
+    : ["Your prediction appears here", "Upload a photo, start the camera or draw a digit."];
   result.innerHTML = `<div class="empty"><i class="ph ph-sparkle" aria-hidden="true"></i>
-    <strong>Your prediction appears here</strong>
-    <span>Upload a photo, start the camera or draw a digit.</span></div>`;
+    <strong>${title}</strong><span>${body}</span></div>`;
 }
 function renderLoading() {
   result.innerHTML = `<div class="answer"><div class="skel" style="width:110px;height:110px"></div>
@@ -338,10 +345,19 @@ function renderResult(r) {
 }
 
 // ---------- Talking to the Python server ----------
-async function predict(dataUrl, { quiet = false } = {}) {
-  state.lastImage = dataUrl;
-  if (!quiet) renderLoading();
+// Predictions only run when the user presses Recognise / Capture.
+function refreshButtons() {
+  $("recognise-upload").disabled = state.inFlight || !state.uploadImage;
+  $("recognise-draw").disabled = state.inFlight || !state.drawn;
+  $("capture").disabled = state.inFlight || !stream;
+}
+function isReady() {
+  return { upload: !!state.uploadImage, draw: state.drawn, camera: !!stream }[state.mode];
+}
+async function predict(dataUrl) {
+  renderLoading();
   state.inFlight = true;
+  refreshButtons();
   $("busy").classList.add("on");
   try {
     const res = await fetch("/api/predict", {
@@ -357,6 +373,7 @@ async function predict(dataUrl, { quiet = false } = {}) {
     renderMessage("ph-plugs", "Server not reachable", "Check your connection and try again. Running it yourself? Start it with .venv/Scripts/python src/web_app.py", true);
   } finally {
     state.inFlight = false;
+    refreshButtons();
     $("busy").classList.remove("on");
   }
 }
@@ -386,7 +403,8 @@ document.querySelector('[aria-label="Script"]').addEventListener("click", (e) =>
   const b = e.target.closest("button"); if (!b) return;
   state.script = b.dataset.script;
   e.currentTarget.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
-  if (state.lastImage && state.mode !== "camera") predict(state.lastImage);
+  // An old result belongs to the other model; clear it and wait for the button
+  renderEmpty();
 });
 document.querySelector('[aria-label="Input mode"]').addEventListener("click", (e) => {
   const b = e.target.closest("button"); if (!b) return;
@@ -397,7 +415,6 @@ document.querySelector('[aria-label="Input mode"]').addEventListener("click", (e
     $("tools-" + m).hidden = m !== state.mode;
   }
   if (state.mode !== "camera") stopCamera();
-  state.lastImage = null;
   renderEmpty();
 });
 
@@ -407,9 +424,12 @@ async function handleFile(file) {
   try {
     const dataUrl = await fileToDataUrl(file);
     $("preview").src = dataUrl; $("preview").hidden = false; $("drop").hidden = true;
-    predict(dataUrl);
+    state.uploadImage = dataUrl;
+    refreshButtons();
+    renderEmpty();
   } catch { renderMessage("ph-warning-circle", "Could not open that image", "Try saving it as PNG or JPG first.", true); }
 }
+$("recognise-upload").onclick = () => predict(state.uploadImage);
 $("browse").onclick = () => $("file").click();
 $("file").onchange = (e) => handleFile(e.target.files[0]);
 const stageUpload = $("stage-upload");
@@ -422,7 +442,7 @@ window.addEventListener("paste", (e) => {
 });
 
 // ---------- Camera ----------
-let stream = null, camTimer = null;
+let stream = null;
 const grab = document.createElement("canvas");
 grab.width = grab.height = 300;
 
@@ -436,41 +456,48 @@ async function startCamera() {
   v.srcObject = stream; await v.play();
   v.hidden = false; $("roi").hidden = false; $("cam-idle").hidden = true;
   $("cam-toggle").querySelector("span").textContent = "Stop camera";
-  renderLoading();
-  camTimer = setInterval(() => {
-    if (state.inFlight || !v.videoWidth) return;
-    // Same square the overlay shows: 62% of the frame height, centred
-    const side = Math.round(Math.min(v.videoWidth, v.videoHeight) * 0.62);
-    const sx = (v.videoWidth - side) / 2, sy = (v.videoHeight - side) / 2;
-    grab.getContext("2d").drawImage(v, sx, sy, side, side, 0, 0, 300, 300);
-    predict(grab.toDataURL("image/jpeg", 0.85), { quiet: true });
-  }, 350);
+  refreshButtons();
+  renderEmpty();
+}
+function capture() {
+  const v = $("video");
+  if (!v.videoWidth) return;
+  // Same square the overlay shows: 62% of the frame height, centred
+  const side = Math.round(Math.min(v.videoWidth, v.videoHeight) * 0.62);
+  const sx = (v.videoWidth - side) / 2, sy = (v.videoHeight - side) / 2;
+  grab.getContext("2d").drawImage(v, sx, sy, side, side, 0, 0, 300, 300);
+  predict(grab.toDataURL("image/jpeg", 0.85));
 }
 function stopCamera() {
-  clearInterval(camTimer); camTimer = null;
   if (stream) stream.getTracks().forEach((t) => t.stop());
   stream = null;
-  $("video").hidden = true; $("roi").hidden = true; $("cam-idle").hidden = false;
+  $("video").hidden = true; $("roi").hidden = true; $("roi").classList.remove("hit"); $("cam-idle").hidden = false;
   $("cam-toggle").querySelector("span").textContent = "Start camera";
+  refreshButtons();
 }
+$("capture").onclick = capture;
 $("cam-toggle").onclick = () => (stream ? (stopCamera(), renderEmpty()) : startCamera());
 
 // ---------- Draw ----------
 const pad = $("pad"), ctx = pad.getContext("2d");
 function clearPad() { ctx.fillStyle = "#fbfcfe"; ctx.fillRect(0, 0, pad.width, pad.height); }
 clearPad();
-let drawing = false, last = null, drawTimer = null;
+let drawing = false, last = null;
 const point = (e) => { const r = pad.getBoundingClientRect(); return [(e.clientX - r.left) * pad.width / r.width, (e.clientY - r.top) * pad.height / r.height]; };
-pad.addEventListener("pointerdown", (e) => { drawing = true; last = point(e); pad.setPointerCapture(e.pointerId); clearTimeout(drawTimer); stroke(e); });
+pad.addEventListener("pointerdown", (e) => {
+  drawing = true; last = point(e); pad.setPointerCapture(e.pointerId); stroke(e);
+  if (!state.drawn) { state.drawn = true; refreshButtons(); renderEmpty(); }
+});
 pad.addEventListener("pointermove", (e) => drawing && stroke(e));
-pad.addEventListener("pointerup", () => { drawing = false; drawTimer = setTimeout(() => predict(pad.toDataURL("image/png")), 300); });
+pad.addEventListener("pointerup", () => { drawing = false; });
+$("recognise-draw").onclick = () => predict(pad.toDataURL("image/png"));
 function stroke(e) {
   const p = point(e);
   ctx.strokeStyle = "#16181d"; ctx.lineWidth = 18; ctx.lineCap = ctx.lineJoin = "round";
   ctx.beginPath(); ctx.moveTo(...last); ctx.lineTo(...p); ctx.stroke();
   last = p;
 }
-$("clear").onclick = () => { clearPad(); state.lastImage = null; renderEmpty(); };
+$("clear").onclick = () => { clearPad(); state.drawn = false; refreshButtons(); renderEmpty(); };
 
 renderEmpty();
 </script>
