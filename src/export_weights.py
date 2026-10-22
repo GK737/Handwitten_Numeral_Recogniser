@@ -5,7 +5,7 @@ Run again after retraining:  .venv/Scripts/python src/export_weights.py"""
 import keras
 import numpy as np
 
-from preprocess import DEVANAGARI_MODEL_PATH, MNIST_MODEL_PATH, MODELS_DIR
+from preprocess import DEVANAGARI_MODEL_PATH, MALAYALAM_MODEL_PATH, MNIST_MODEL_PATH, MODELS_DIR
 
 # Layers that only act during training (augmentation, dropout)
 TRAINING_ONLY = ("RandomRotation", "RandomTranslation", "RandomZoom", "Dropout")
@@ -57,3 +57,4 @@ def export(model_path, out_path):
 if __name__ == "__main__":
     export(MNIST_MODEL_PATH, MODELS_DIR / "western.npz")
     export(DEVANAGARI_MODEL_PATH, MODELS_DIR / "devanagari.npz")
+    export(MALAYALAM_MODEL_PATH, MODELS_DIR / "malayalam.npz")

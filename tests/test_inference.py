@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 import inference
-from preprocess import DEVANAGARI_MODEL_PATH, MNIST_MODEL_PATH, preprocess
+from preprocess import DEVANAGARI_MODEL_PATH, MALAYALAM_MODEL_PATH, MNIST_MODEL_PATH, preprocess
 
 REPO = Path(__file__).resolve().parent.parent
 
@@ -14,8 +14,11 @@ REPO = Path(__file__).resolve().parent.parent
 def sample_inputs(script):
     if script == "western":
         files = sorted((REPO / "IRL_TEST").glob("digit_*_yadu.png"))
-    else:
+    elif script == "devanagari":
         files = [sorted((REPO / "datasets/Devanagiri_Dataset/Test" / f"digit_{d}").glob("*.png"))[0]
+                 for d in range(10)]
+    else:
+        files = [sorted((REPO / "datasets/Malayalam_Dataset/malayalam_digits/test" / str(d)).glob("*.png"))[0]
                  for d in range(10)]
     return np.concatenate([preprocess(cv2.imread(str(f)), script)[0] for f in files])
 
@@ -23,6 +26,7 @@ def sample_inputs(script):
 @pytest.mark.parametrize("script, keras_path", [
     ("western", MNIST_MODEL_PATH),
     ("devanagari", DEVANAGARI_MODEL_PATH),
+    ("malayalam", MALAYALAM_MODEL_PATH),
 ])
 def test_exported_model_matches_keras(script, keras_path):
     x = sample_inputs(script)

@@ -4,3 +4,4 @@ debug/
 .vercel/
 
 .vercel
+datasets/cache/

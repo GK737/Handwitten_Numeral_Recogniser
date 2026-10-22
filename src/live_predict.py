@@ -2,18 +2,22 @@ import cv2
 import numpy as np
 import keras
 
-from preprocess import DEVANAGARI_MODEL_PATH, MNIST_MODEL_PATH, preprocess
+from preprocess import DEVANAGARI_MODEL_PATH, MALAYALAM_MODEL_PATH, MNIST_MODEL_PATH, preprocess
+
+SCRIPTS = {
+    "1": (MNIST_MODEL_PATH, "western"),
+    "2": (DEVANAGARI_MODEL_PATH, "devanagari"),
+    "3": (MALAYALAM_MODEL_PATH, "malayalam"),
+}
 
 def main():
     print("Select Model:")
     print("1. MNIST (Western)")
     print("2. Devanagari")
+    print("3. Malayalam")
     choice = input("Choice: ")
 
-    if choice == '1':
-        model_path, script = MNIST_MODEL_PATH, "western"
-    else:
-        model_path, script = DEVANAGARI_MODEL_PATH, "devanagari"
+    model_path, script = SCRIPTS.get(choice, SCRIPTS["1"])
     model = keras.models.load_model(model_path)
     debug_img = None
 

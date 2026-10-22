@@ -6,7 +6,13 @@ import cv2
 import keras
 import numpy as np
 
-from preprocess import DEVANAGARI_MODEL_PATH, MNIST_MODEL_PATH, preprocess
+from preprocess import DEVANAGARI_MODEL_PATH, MALAYALAM_MODEL_PATH, MNIST_MODEL_PATH, preprocess
+
+SCRIPTS = {
+    "1": (MNIST_MODEL_PATH, "western"),
+    "2": (DEVANAGARI_MODEL_PATH, "devanagari"),
+    "3": (MALAYALAM_MODEL_PATH, "malayalam"),
+}
 
 DEBUG_DIR = Path(__file__).resolve().parent.parent / "debug"
 
@@ -45,15 +51,16 @@ def main():
         print("\n--- Numeral Recogniser Menu ---")
         print("1. Predict Western Digit (MNIST)")
         print("2. Predict Devanagari Digit")
-        print("3. Exit")
+        print("3. Predict Malayalam Digit")
+        print("4. Exit")
 
         choice = input("Select an option: ")
 
-        if choice == '3':
+        if choice == '4':
             print("Exiting...")
             break
 
-        if choice not in ['1', '2']:
+        if choice not in ['1', '2', '3']:
             print("Invalid choice, please try again.")
             continue
 
@@ -64,10 +71,7 @@ def main():
             continue
 
         try:
-            if choice == '1':
-                model_path, script = MNIST_MODEL_PATH, "western"
-            else:
-                model_path, script = DEVANAGARI_MODEL_PATH, "devanagari"
+            model_path, script = SCRIPTS[choice]
             digit, confidence = predict_digit(image_path, model_path, script, args.debug)
 
             if digit is None:

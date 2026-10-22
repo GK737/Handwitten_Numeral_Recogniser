@@ -6,6 +6,7 @@ import numpy as np
 MODELS_DIR = Path(__file__).resolve().parent.parent / "models"
 MNIST_MODEL_PATH = MODELS_DIR / "mnist_cnn.keras"
 DEVANAGARI_MODEL_PATH = MODELS_DIR / "devanagari_cnn.keras"
+MALAYALAM_MODEL_PATH = MODELS_DIR / "malayalam_cnn.keras"
 
 # Pieces smaller than this fraction of the largest blob are treated as noise
 MIN_PIECE_RATIO = 0.15
@@ -20,6 +21,9 @@ MAX_SIDE = 512
 FRAMING = {
     "western": (20, True, True),
     "devanagari": (24, False, False),
+    # Trained on this pipeline's own output (src/train_script.py). Malayalam
+    # digits vary a lot in width (൦ vs ൬), so their shape is kept.
+    "malayalam": (22, True, False),
 }
 
 

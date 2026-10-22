@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#0a0f1a" media="(prefers-color-scheme: dark)">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+Devanagari:wght@500;600&family=Noto+Sans+Malayalam:wght@500;600&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
 <style>
 /* Glass here is a web approximation of Apple's Liquid Glass (backdrop-filter +
@@ -32,7 +32,8 @@
   --glass-shadow: 0 24px 70px rgb(30 58 110 / .18);
   --stage: rgb(255 255 255 / .55);
   --danger: #b91c1c;
-  --font: "Geist", -apple-system, "Segoe UI", system-ui, sans-serif;
+  /* Geist has no Indic glyphs; Noto fills in Devanagari and Malayalam numerals */
+  --font: "Geist", "Noto Sans Devanagari", "Noto Sans Malayalam", -apple-system, "Segoe UI", system-ui, sans-serif;
   --mono: "Geist Mono", ui-monospace, "Cascadia Mono", monospace;
 }
 @media (prefers-color-scheme: dark) {
@@ -129,7 +130,10 @@ h1 { font-size: clamp(1.5rem, 2.4vw, 2rem); font-weight: 600; letter-spacing: -.
   box-shadow: inset 0 1px 0 rgb(255 255 255 / .5), 0 4px 14px rgb(15 23 42 / .12);
 }
 .seg button:active, .btn:active { transform: scale(.97); }
-.glyphs { font-family: var(--mono); font-size: .8rem; opacity: .7; }
+.glyphs { font-size: .8rem; opacity: .7; }
+header .seg { max-width: 100%; }
+/* Three scripts with numeral hints are too wide for a phone; drop the hints */
+@media (max-width: 440px) { header .glyphs { display: none; } }
 
 .grid { display: grid; grid-template-columns: 1.35fr 1fr; gap: 24px; align-items: start; }
 @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
@@ -198,6 +202,7 @@ h2 { font-size: .95rem; font-weight: 600; margin: 26px 0 12px; }
 .bars { display: grid; gap: 7px; margin: 0; padding: 0; list-style: none; }
 .bars li { display: grid; grid-template-columns: 1.6em 1fr 3.6em; align-items: center; gap: 10px; font-family: var(--mono); font-size: .85rem; }
 .bars .bar { height: 8px; border-radius: 999px; background: var(--ink-soft); opacity: .35; transform-origin: left; transition: transform .45s cubic-bezier(.16, 1, .3, 1); }
+.bars li > span:first-child { font-family: var(--font); font-size: 1rem; text-align: center; }
 .bars li.top .bar { background: var(--accent); opacity: 1; }
 .bars li.top { font-weight: 600; }
 .bars .pct { text-align: right; color: var(--ink-soft); }
@@ -239,6 +244,7 @@ h2 { font-size: .95rem; font-weight: 600; margin: 26px 0 12px; }
     <div class="seg glass" role="group" aria-label="Script">
       <button aria-pressed="true" data-script="western">Western <span class="glyphs">0-9</span></button>
       <button aria-pressed="false" data-script="devanagari">Devanagari <span class="glyphs">०-९</span></button>
+      <button aria-pressed="false" data-script="malayalam">Malayalam <span class="glyphs">൦-൯</span></button>
     </div>
   </header>
 
@@ -299,7 +305,7 @@ h2 { font-size: .95rem; font-weight: 600; margin: 26px 0 12px; }
 </div>
 
 <script>
-const DEVANAGARI = "०१२३४५६७८९";
+const NUMERALS = { devanagari: "०१२३४५६७८९", malayalam: "൦൧൨൩൪൫൬൭൮൯" };
 const state = { script: "western", mode: "upload", uploadImage: null, drawn: false, inFlight: false };
 const $ = (id) => document.getElementById(id);
 const result = $("result");
@@ -322,7 +328,7 @@ function renderMessage(icon, title, body, isError) {
   result.innerHTML = `<div class="empty"><i class="ph ${icon}" aria-hidden="true"></i>
     <strong>${title}</strong><span class="${isError ? "error-msg" : ""}">${body}</span></div>`;
 }
-const glyph = (d) => (state.script === "devanagari" ? DEVANAGARI[d] : String(d));
+const glyph = (d) => (NUMERALS[state.script] ? NUMERALS[state.script][d] : String(d));
 
 function renderResult(r) {
   const pct = Math.round(r.confidence * 100);
