@@ -66,20 +66,35 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Moving gradient: four soft blobs drifting slowly behind the glass.
+/* Moving gradient: four soft blobs orbiting behind the glass while the whole
+   field slowly turns, so the colours visibly flow and swirl.
    Only transform animates, so it stays cheap. */
 .aurora { position: fixed; inset: 0; overflow: hidden; pointer-events: none; }
-.aurora span {
-  position: absolute; width: 60vmax; height: 60vmax; border-radius: 50%;
-  filter: blur(70px); opacity: .75; will-change: transform;
+.aurora .spin {
+  position: absolute; inset: -35%;  /* oversized so corners never show while rotating */
+  animation: spin 60s linear infinite; will-change: transform;
 }
-.aurora span:nth-child(1) { background: var(--blob-a); top: -20vmax; left: -15vmax; animation: drift-a 26s ease-in-out infinite alternate; }
-.aurora span:nth-child(2) { background: var(--blob-b); bottom: -25vmax; left: 10vmax; animation: drift-b 32s ease-in-out infinite alternate; }
-.aurora span:nth-child(3) { background: var(--blob-c); top: -10vmax; right: -20vmax; opacity: .55; animation: drift-c 38s ease-in-out infinite alternate; }
-.aurora span:nth-child(4) { background: var(--blob-d); bottom: -20vmax; right: -10vmax; animation: drift-a 44s ease-in-out infinite alternate-reverse; }
-@keyframes drift-a { to { transform: translate(18vw, 14vh) scale(1.15); } }
-@keyframes drift-b { to { transform: translate(-12vw, -18vh) scale(.9); } }
-@keyframes drift-c { to { transform: translate(-20vw, 22vh) scale(1.1); } }
+.aurora span {
+  position: absolute; width: 55vmax; height: 55vmax; border-radius: 50%;
+  filter: blur(60px); opacity: .8; will-change: transform;
+}
+.aurora span:nth-child(1) { background: var(--blob-a); top: 15%; left: 15%; animation: orbit-a 14s ease-in-out infinite; }
+.aurora span:nth-child(2) { background: var(--blob-b); bottom: 15%; left: 25%; animation: orbit-b 18s ease-in-out infinite; }
+.aurora span:nth-child(3) { background: var(--blob-c); top: 20%; right: 15%; opacity: .65; animation: orbit-c 16s ease-in-out infinite; }
+.aurora span:nth-child(4) { background: var(--blob-d); bottom: 20%; right: 20%; animation: orbit-b 22s ease-in-out infinite reverse; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes orbit-a {
+  33% { transform: translate(28vw, 18vh) scale(1.2); }
+  66% { transform: translate(-8vw, 32vh) scale(.85); }
+}
+@keyframes orbit-b {
+  33% { transform: translate(-26vw, -20vh) scale(.9); }
+  66% { transform: translate(14vw, -34vh) scale(1.2); }
+}
+@keyframes orbit-c {
+  33% { transform: translate(-30vw, 24vh) scale(1.15); }
+  66% { transform: translate(-6vw, -22vh) scale(.9); }
+}
 
 .glass {
   position: relative; isolation: isolate;
@@ -198,7 +213,7 @@ h2 { font-size: .95rem; font-weight: 600; margin: 26px 0 12px; }
 .busy-dot.on { opacity: 1; }
 
 @media (prefers-reduced-motion: reduce) {
-  .aurora span, .skel { animation: none; }
+  .aurora .spin, .aurora span, .skel { animation: none; }
   * { transition: none !important; }
 }
 @media (prefers-reduced-transparency: reduce) {
@@ -212,7 +227,7 @@ h2 { font-size: .95rem; font-weight: 600; margin: 26px 0 12px; }
 </style>
 </head>
 <body>
-<div class="aurora" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+<div class="aurora" aria-hidden="true"><div class="spin"><span></span><span></span><span></span><span></span></div></div>
 
 <div class="shell">
   <header>
