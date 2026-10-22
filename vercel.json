@@ -1,8 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "functions": {
-    "api/predict.py": {
-      "includeFiles": "{src/preprocess.py,src/inference.py,src/web_app.py,public/index.html,models/*.npz}",
+    "app.py": {
       "maxDuration": 15
     }
   }

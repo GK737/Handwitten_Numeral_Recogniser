@@ -1,3 +1,4 @@
+import base64
 import subprocess
 import sys
 from pathlib import Path
@@ -23,6 +24,33 @@ def test_blank_image_reports_no_digit():
     import numpy as np
     _, png = cv2.imencode(".png", np.full((200, 200), 230, np.uint8))
     assert run_prediction(png.tobytes(), "western")["found"] is False
+
+
+def call_app(method, path, body=b""):
+    import io
+    import web_app
+    from wsgiref.util import setup_testing_defaults
+    environ = {"REQUEST_METHOD": method, "PATH_INFO": path,
+               "CONTENT_LENGTH": str(len(body)), "wsgi.input": io.BytesIO(body)}
+    setup_testing_defaults(environ)
+    status = []
+    chunks = web_app.app(environ, lambda s, headers: status.append(s))
+    return status[0], b"".join(chunks)
+
+
+def test_app_serves_the_page_and_predicts_over_http():
+    import json
+    status, page = call_app("GET", "/")
+    assert status.startswith("200") and b"Numeral Recogniser" in page
+
+    photo = (REPO / "IRL_TEST" / "digit_7_yadu.png").read_bytes()
+    body = json.dumps({"image": "data:image/png;base64," + base64.b64encode(photo).decode(),
+                       "script": "western"}).encode()
+    status, payload = call_app("POST", "/api/predict", body)
+    assert status.startswith("200") and json.loads(payload)["digit"] == 7
+
+    assert call_app("POST", "/api/predict", b"{not json")[0].startswith("400")
+    assert call_app("GET", "/../src/web_app.py")[0].startswith("404")
 
 
 def run_fresh(code):

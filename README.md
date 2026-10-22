@@ -29,7 +29,7 @@ Then open http://127.0.0.1:8765. The same page is deployed on Vercel (see Deploy
 
 ## Deploy
 
-The site runs on Vercel: `public/index.html` is the page and `api/predict.py` is a Python function. It uses `src/inference.py`, which runs the models with NumPy alone, so the function doesn't need TensorFlow. After retraining, re-export the weights before deploying:
+The site runs on Vercel as one Python function: `app.py` exposes the WSGI app from `src/web_app.py`, which serves `public/index.html` and `/api/predict`. It uses `src/inference.py`, which runs the models with NumPy alone, so the function doesn't need TensorFlow. After retraining, re-export the weights before deploying:
 
 ```
 .venv/Scripts/python src/export_weights.py
