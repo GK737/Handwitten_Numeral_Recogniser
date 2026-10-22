@@ -5,7 +5,7 @@ Handwritten numeral recognition is the ability of a computer to identify and cla
 
 ```
 py -3.13 -m venv .venv
-.venv/Scripts/python -m pip install -r requirements.txt
+.venv/Scripts/python -m pip install -r requirements-dev.txt
 ```
 
 ## Test it in the browser
@@ -14,7 +14,7 @@ py -3.13 -m venv .venv
 .venv/Scripts/python src/web_app.py
 ```
 
-Then open http://127.0.0.1:8765. You can upload a photo, use the webcam or draw a digit, for Western or Devanagari numerals. The page shows the prediction, the confidence and the 28x28 image the model actually sees.
+Then open http://127.0.0.1:8765. The same page is deployed on Vercel (see Deploy below). You can upload a photo, use the webcam or draw a digit, for Western or Devanagari numerals. The page shows the prediction, the confidence and the 28x28 image the model actually sees.
 
 ## Command line
 
@@ -25,4 +25,13 @@ Then open http://127.0.0.1:8765. You can upload a photo, use the webcam or draw 
 
 ```
 .venv/Scripts/python -m pytest
+```
+
+## Deploy
+
+The site runs on Vercel: `public/index.html` is the page and `api/predict.py` is a Python function. It uses `src/inference.py`, which runs the models with NumPy alone, so the function doesn't need TensorFlow. After retraining, re-export the weights before deploying:
+
+```
+.venv/Scripts/python src/export_weights.py
+vercel deploy
 ```

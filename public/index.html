@@ -265,7 +265,7 @@ h2 { font-size: .95rem; font-weight: 600; margin: 26px 0 12px; }
       </div>
       <div class="toolbar" id="tools-camera" hidden>
         <button class="btn primary" id="cam-toggle"><i class="ph ph-video-camera" aria-hidden="true"></i><span>Start camera</span></button>
-        <span class="hint" id="cam-hint">Camera stays on this computer. Nothing is uploaded anywhere.</span>
+        <span class="hint" id="cam-hint">Only the square is sent for prediction. Nothing is stored.</span>
       </div>
       <div class="toolbar" id="tools-draw" hidden>
         <button class="btn" id="clear"><i class="ph ph-eraser" aria-hidden="true"></i>Clear</button>
@@ -339,7 +339,7 @@ async function predict(dataUrl, { quiet = false } = {}) {
     if (!r.found) return renderMessage("ph-magnifying-glass", "No digit found", "Try more contrast between ink and paper, or move the digit closer.");
     renderResult(r);
   } catch {
-    renderMessage("ph-plugs", "Server not reachable", "Start it with: .venv/Scripts/python src/web_app.py", true);
+    renderMessage("ph-plugs", "Server not reachable", "Check your connection and try again. Running it yourself? Start it with .venv/Scripts/python src/web_app.py", true);
   } finally {
     state.inFlight = false;
     $("busy").classList.remove("on");

@@ -1,34 +1,28 @@
-"""Local test UI: serves web/index.html and a /api/predict endpoint.
+"""Test UI backend: serves public/index.html and a /api/predict endpoint.
 
-Run:  .venv/Scripts/python src/web_app.py   then open http://127.0.0.1:8765
-Only listens on this machine (127.0.0.1); it is a testing tool, not a server
-to expose on a network."""
+Locally:  .venv/Scripts/python src/web_app.py   then open http://127.0.0.1:8765
+On Vercel, api/predict.py reuses Handler below and public/ is served as static
+files. Needs only NumPy and OpenCV (models run through src/inference.py)."""
 import base64
 import json
-import threading
+import os
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
+# Refuse to decode images bigger than ~40 megapixels: a small PNG can claim huge
+# dimensions and make the decoder allocate gigabytes. Must be set before cv2 loads.
+os.environ.setdefault("OPENCV_IO_MAX_IMAGE_PIXELS", str(40_000_000))
+
 import cv2
-import keras
 import numpy as np
 
-from preprocess import DEVANAGARI_MODEL_PATH, FRAMING, MNIST_MODEL_PATH, preprocess
+import inference
+from preprocess import FRAMING, preprocess
 
 HOST, PORT = "127.0.0.1", 8765
-INDEX_HTML = Path(__file__).resolve().parent.parent / "web" / "index.html"
-MAX_UPLOAD_BYTES = 15 * 1024 * 1024
-MODEL_PATHS = {"western": MNIST_MODEL_PATH, "devanagari": DEVANAGARI_MODEL_PATH}
-
-_models = {}
-# Keras models are not safe to call from several request threads at once
-_model_lock = threading.Lock()
-
-
-def _model(script):
-    if script not in _models:
-        _models[script] = keras.models.load_model(MODEL_PATHS[script])
-    return _models[script]
+INDEX_HTML = Path(__file__).resolve().parent.parent / "public" / "index.html"
+# Vercel rejects request bodies over 4.5 MB; the page shrinks photos well below this
+MAX_UPLOAD_BYTES = 4 * 1024 * 1024
 
 
 def run_prediction(image_bytes, script):
@@ -42,8 +36,7 @@ def run_prediction(image_bytes, script):
     if tensor is None:
         return {"found": False}
 
-    with _model_lock:
-        probabilities = _model(script).predict(tensor, verbose=0)[0]
+    probabilities = inference.load_model(script).predict(tensor)[0]
     _, png = cv2.imencode(".png", final_img)
     return {
         "found": True,
@@ -65,17 +58,22 @@ class Handler(BaseHTTPRequestHandler):
         if self.path != "/api/predict":
             self.send_error(404)
             return
-        length = int(self.headers.get("Content-Length") or 0)
+        try:
+            length = int(self.headers.get("Content-Length") or 0)
+        except ValueError:
+            length = 0
         if not 0 < length <= MAX_UPLOAD_BYTES:
-            self._json(413, {"error": "Image must be under 15 MB"})
+            self._json(413, {"error": "Send an image under 4 MB"})
             return
         try:
             body = json.loads(self.rfile.read(length))
             # Browsers send images as data URLs: "data:image/png;base64,...."
             image_bytes = base64.b64decode(body["image"].split(",", 1)[-1])
             self._json(200, run_prediction(image_bytes, body.get("script", "western")))
-        except (ValueError, KeyError, TypeError) as e:
+        except (ValueError, KeyError, TypeError, AttributeError) as e:
             self._json(400, {"error": str(e)})
+        except cv2.error:
+            self._json(400, {"error": "That image is too large or damaged to read"})
 
     def _json(self, status, payload):
         self._send(status, "application/json", json.dumps(payload).encode())
@@ -92,8 +90,6 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main():
-    for script in MODEL_PATHS:
-        _model(script)
     print(f"Numeral Recogniser UI running at http://{HOST}:{PORT}", flush=True)
     ThreadingHTTPServer((HOST, PORT), Handler).serve_forever()
 
