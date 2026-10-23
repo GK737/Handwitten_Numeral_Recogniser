@@ -10,8 +10,8 @@ from web_app import run_prediction
 REPO = Path(__file__).resolve().parent.parent
 
 
-def test_uploaded_photo_returns_digit_probabilities_and_model_input():
-    photo = (REPO / "IRL_TEST" / "digit_7_yadu.png").read_bytes()
+def test_uploaded_photo_returns_digit_probabilities_and_model_input(photo_of_seven):
+    photo = photo_of_seven
     result = run_prediction(photo, "western")
     assert result["found"] is True
     assert result["digit"] == 7
@@ -38,12 +38,12 @@ def call_app(method, path, body=b""):
     return status[0], b"".join(chunks)
 
 
-def test_app_serves_the_page_and_predicts_over_http():
+def test_app_serves_the_page_and_predicts_over_http(photo_of_seven):
     import json
     status, page = call_app("GET", "/")
     assert status.startswith("200") and b"Numeral Recogniser" in page
 
-    photo = (REPO / "IRL_TEST" / "digit_7_yadu.png").read_bytes()
+    photo = photo_of_seven
     body = json.dumps({"image": "data:image/png;base64," + base64.b64encode(photo).decode(),
                        "script": "western"}).encode()
     status, payload = call_app("POST", "/api/predict", body)
@@ -77,8 +77,8 @@ def test_image_claiming_huge_dimensions_is_refused():
     assert r.stdout.strip() == "refused", r.stderr
 
 
-def test_unknown_script_and_garbage_bytes_are_rejected():
-    photo = (REPO / "IRL_TEST" / "digit_7_yadu.png").read_bytes()
+def test_unknown_script_and_garbage_bytes_are_rejected(photo_of_seven):
+    photo = photo_of_seven
     with pytest.raises(ValueError):
         run_prediction(photo, "klingon")
     with pytest.raises(ValueError):

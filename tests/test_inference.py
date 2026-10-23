@@ -11,10 +11,10 @@ from preprocess import DEVANAGARI_MODEL_PATH, MALAYALAM_MODEL_PATH, MNIST_MODEL_
 REPO = Path(__file__).resolve().parent.parent
 
 
-def sample_inputs(script):
+def sample_inputs(script, western_photos):
     if script == "western":
-        files = sorted((REPO / "IRL_TEST").glob("digit_*_yadu.png"))
-    elif script == "devanagari":
+        return np.concatenate([preprocess(img, script)[0] for img, _ in western_photos[::15]])
+    if script == "devanagari":
         files = [sorted((REPO / "datasets/Devanagiri_Dataset/Test" / f"digit_{d}").glob("*.png"))[0]
                  for d in range(10)]
     else:
@@ -28,8 +28,8 @@ def sample_inputs(script):
     ("devanagari", DEVANAGARI_MODEL_PATH),
     ("malayalam", MALAYALAM_MODEL_PATH),
 ])
-def test_exported_model_matches_keras(script, keras_path):
-    x = sample_inputs(script)
+def test_exported_model_matches_keras(script, keras_path, western_photos):
+    x = sample_inputs(script, western_photos)
     expected = keras.models.load_model(keras_path).predict(x, verbose=0)
     actual = np.concatenate([inference.load_model(script).predict(x[i:i+1]) for i in range(len(x))])
     np.testing.assert_allclose(actual, expected, atol=1e-4)

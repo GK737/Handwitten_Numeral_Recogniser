@@ -1,8 +1,6 @@
 # Only the page, the API function and the NumPy models are deployed
 .venv/
 datasets/
-IRL_TEST/
-WTF/
 test_res/
 report/
 tests/
